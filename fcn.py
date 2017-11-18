@@ -80,9 +80,9 @@ def alexnet_v2(inputs,
   #TODO replace the max_pool2d layers with strided convolutional layers
   net = layers.conv2d(
       inputs, 96, [11, 11], 4, padding='VALID', scope='conv1')
-  net = layers_lib.max_pool2d(net, [3, 3], 2, scope='pool1') 
+  net = layers.conv2d(net, 192, 3, 2, padding='VALID', scope='pconv1')
   net = layers.conv2d(net, 192, [5, 5], scope='conv2')
-  net = layers_lib.max_pool2d(net, [3, 3], 2, scope='pool2')
+  net = layers.conv2d(net, 384, 3, 2, padding='VALID', scope='pconv2')
   net = layers.conv2d(net, 384, [3, 3], scope='conv3')
   net = layers.conv2d(net, 384, [3, 3], scope='conv4')
   net = layers.conv2d(net, 256, [3, 3], scope='conv5')
@@ -99,9 +99,6 @@ def alexnet_v2(inputs,
     net = layers.conv2d(net, 4096, [1, 1], scope='fc7')
     net = layers_lib.dropout(
         net, dropout_keep_prob, is_training=is_training, scope='dropout7')
-    # Replace classification layer with convolution to prediction at 
-    # course output points (create pixelwise classification on the
-    # currently downsampled image).
     net = layers.conv2d(
         net,
         2, [1,1], # Prediction is either 'car' or 'background' for Carvana.
@@ -113,15 +110,16 @@ def alexnet_v2(inputs,
   with arg_scope(
       [layers.conv2d_transpose],
       padding='VALID'):
-    net = layers.conv2d_transpose(net, 4096, 1, scope='convt8')
-    net = layers.conv2d_transpose(net, 4096, 1, scope='convt7')
-    net = layers.conv2d_transpose(net, 256, 5, scope='convt6')
-    net = layers.conv2d_transpose(net, 384, 3, scope='convt5')
-    net = layers.conv2d_transpose(net, 384, 3, scope='convt4')
-    net = layers.conv2d_transpose(net, 192, 3, scope='convt3') # Technically should be an unpool w/ switch until the pool->strided conv is implemented
-    net = layers.conv2d_transpose(net, 192, 5, scope='convt2')
-    net = layers.conv2d_transpose(net, 96, 5, scope='convt1') # Technically should be an unpool as well
-    net = layers.conv2d_transpose(net, 3, 11, 4, scope='convt0') 
+    net = layers.conv2d_transpose(net, 4096, 1, scope='convt9')
+    net = layers.conv2d_transpose(net, 4096, 1, scope='convt10')
+    net = layers.conv2d_transpose(net, 256, 5, scope='convt11')
+    net = layers.conv2d_transpose(net, 384, 3, scope='convt12')
+    net = layers.conv2d_transpose(net, 384, 3, scope='convt13')
+    net = layers.conv2d_transpose(net, 384, 3, scope='convt14')
+    net = layers.conv2d_transpose(net, 192, 3, 2, scope='convt15')
+    net = layers.conv2d_transpose(net, 192, 5, scope='convt16')
+    net = layers.conv2d_transpose(net, 96, 3, 2, scope='convt17')
+    net = layers.conv2d_transpose(net, 3, 11, 4, scope='convt18')
 
   return net
 
