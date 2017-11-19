@@ -81,11 +81,11 @@ def alexnet_v2(inputs,
   net = layers.conv2d(
       inputs, 96, [11, 11], 4, padding='VALID', scope='conv1')
   net = layers.conv2d(net, 192, 3, 2, padding='VALID', scope='pconv1')
-  net = layers.conv2d(net, 192, [5, 5], scope='conv2')
+  net = layers.conv2d(net, 192, [5, 5], padding='VALID', scope='conv2')
   net = layers.conv2d(net, 384, 3, 2, padding='VALID', scope='pconv2')
-  net = layers.conv2d(net, 384, [3, 3], scope='conv3')
-  net = layers.conv2d(net, 384, [3, 3], scope='conv4')
-  net = layers.conv2d(net, 256, [3, 3], scope='conv5')
+  net = layers.conv2d(net, 384, [3, 3], padding='VALID', scope='conv3')
+  net = layers.conv2d(net, 384, [3, 3], padding='VALID', scope='conv4')
+  net = layers.conv2d(net, 256, [3, 3], padding='VALID', scope='conv5')
 
   # Convolution net
   with arg_scope(
