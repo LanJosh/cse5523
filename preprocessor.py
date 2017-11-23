@@ -15,7 +15,7 @@ def _int64_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 debug_im = glob.glob("./train_hq/*.jpg")
-debug_im = debug_im[:30] # Use small subset for quicker training
+debug_im = debug_im[:680]
 debug_mask = ['./train_masks'+x[10:] for x in debug_im]
 debug_mask = [x[:-4]+'_mask.gif' for x in debug_mask]
 tfrecords_filename = 'debug_data.tfrecords'
