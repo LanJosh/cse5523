@@ -45,8 +45,6 @@ with tf.Session() as sess:
     mask = np.expand_dims(np.array(io.imread(m_path)), axis=2) 
     img = p.process(sess, img)
     mask = mp.process(sess, mask)
-    dmask = Image.fromarray(mask[:,:,0])
-    dmask.save("dm{}.png".format(i))
     loss, _ = sess.run([losses, train_step], feed_dict={x:[img], y_:[mask]})
     print("Loss {}".format(loss))
   save_path = saver.save(sess, "/tmp/model.ckpt")  
