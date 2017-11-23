@@ -77,7 +77,6 @@ def alexnet_v2(inputs,
     The last layer containing a segmentation map of an image.
   """
 
-  #TODO replace the max_pool2d layers with strided convolutional layers
   net = layers.conv2d(
       inputs, 96, [11, 11], 4, padding='VALID', scope='conv1')
   net = layers.conv2d(net, 192, 3, 2, padding='VALID', scope='pconv1')
@@ -119,7 +118,9 @@ def alexnet_v2(inputs,
     net = layers.conv2d_transpose(net, 192, 3, 2, scope='convt15')
     net = layers.conv2d_transpose(net, 192, 5, scope='convt16')
     net = layers.conv2d_transpose(net, 96, 3, 2, scope='convt17')
-    net = layers.conv2d_transpose(net, 3, 11, 4, scope='convt18')
+    # Since we only classify between car & background we can hold
+    # the scores for only 1.
+    net = layers.conv2d_transpose(net, 1, 11, 4, scope='convt18')
 
   return net
 
