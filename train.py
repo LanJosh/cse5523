@@ -34,6 +34,7 @@ init_op = tf.group(tf.global_variables_initializer(),
 saver = tf.train.Saver()
 
 images = glob.glob("./train_hq/*.jpg")
+images = images[:4070]
 masks = ["./train_masks"+x[10:] for x in images]
 masks = [x[:-4]+'_mask.gif' for x in masks] 
 
