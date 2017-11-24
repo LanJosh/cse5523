@@ -20,7 +20,7 @@ mp = preprocessor.MaskProcessor()
 x = tf.placeholder(tf.float32, [None, 227, 227, 3])
 
 # Placeholder for the image mask
-y_ = tf.placeholder(tf.float32, [None, 227, 227, 1])
+y_ = tf.placeholder(tf.float32, [None, 227, 227, 2])
 
 with slim.arg_scope(fcn.alexnet_v2_arg_scope()):
   y_conv = fcn.alexnet_v2(x)
@@ -44,7 +44,7 @@ with tf.Session() as sess:
     img = np.array(io.imread(im_path))
     mask = np.expand_dims(np.array(io.imread(m_path)), axis=2) 
     img = p.process(sess, img)
-    mask = mp.process(sess, mask)
+    mask = mp.process(sess, np.array([mask]))
     loss, _ = sess.run([losses, train_step], feed_dict={x:[img], y_:[mask]})
     print("Loss {}".format(loss))
   save_path = saver.save(sess, "/tmp/model.ckpt")  

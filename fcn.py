@@ -60,7 +60,8 @@ def alexnet_v2(inputs,
                is_training=True,
                dropout_keep_prob=0.5,
                scope='alexnet_v2'):
-  """AlexNet version 2.
+  """Modified version of AlexNet version 2 with a deconvolutional expanding
+  path for semantic segmentation.
 
   Described in: http://arxiv.org/pdf/1404.5997v2.pdf
 
@@ -120,7 +121,65 @@ def alexnet_v2(inputs,
     net = layers.conv2d_transpose(net, 96, 3, 2, scope='convt17')
     # Since we only classify between car & background we can hold
     # the scores for only 1.
-    net = layers.conv2d_transpose(net, 1, 11, 4, scope='convt18')
+    net = layers.conv2d_transpose(net, 2, 11, 4, scope='convt18')
+
+  return net
+
+def alexnet_v2_orig(inputs,
+               is_training=True,
+               dropout_keep_prob=0.5,
+               scope='alexnet_v2'):
+  """Original AlexNet version 2 as described by Long,Shelhamer for semantic
+  segmentation.
+
+  Described in: http://arxiv.org/pdf/1404.5997v2.pdf
+
+  Note: All the fully_connected layers have been transformed to conv2d layers.
+
+  Args:
+    inputs: a tensor of size [batch_size, 227, 227, 3].
+    is_training: whether or not the model is being trained.
+    dropout_keep_prob: the probability that activations are kept in the dropout
+      layers during training.
+    scope: Optional scope for the variables.
+
+  Returns:
+    The last layer containing a segmentation map of an image.
+  """
+
+  net = layers.conv2d(
+      inputs, 96, [11, 11], 4, padding='VALID', scope='conv1')
+  net = layers.conv2d(net, 192, 3, 2, padding='VALID', scope='pconv1')
+  net = layers.conv2d(net, 192, [5, 5], padding='VALID', scope='conv2')
+  net = layers.conv2d(net, 384, 3, 2, padding='VALID', scope='pconv2')
+  net = layers.conv2d(net, 384, [3, 3], padding='VALID', scope='conv3')
+  net = layers.conv2d(net, 384, [3, 3], padding='VALID', scope='conv4')
+  net = layers.conv2d(net, 256, [3, 3], padding='VALID', scope='conv5')
+
+  # Convolution net
+  with arg_scope(
+      [layers.conv2d],
+      weights_initializer=trunc_normal(0.005),
+      biases_initializer=init_ops.constant_initializer(0.1)):
+
+    net = layers.conv2d(net, 4096, [5, 5], padding='VALID', scope='fc6')
+    net = layers_lib.dropout(
+        net, dropout_keep_prob, is_training=is_training, scope='dropout6')
+    net = layers.conv2d(net, 4096, [1, 1], scope='fc7')
+    net = layers_lib.dropout(
+        net, dropout_keep_prob, is_training=is_training, scope='dropout7')
+    net = layers.conv2d(
+        net,
+        2, [1,1], # Prediction is either 'car' or 'background' for Carvana.
+        padding='VALID',
+        biases_initializer=init_ops.zeros_initializer(),
+        scope='fc8') 
+
+  # Deconvolution net
+  with arg_scope(
+      [layers.conv2d_transpose],
+      padding='VALID'):
+    net = layers.conv2d_transpose(net, 2, 227, 32, scope='deconv')
 
   return net
 
