@@ -8,6 +8,7 @@ import skimage.io as io
 import numpy as np
 import preprocessor
 from PIL import Image
+from random import shuffle
 import glob
 
 import fcn
@@ -35,6 +36,8 @@ saver = tf.train.Saver()
 
 images = glob.glob("./train_hq/*.jpg")
 images = images[:4070]
+shuffle(images)
+
 masks = ["./train_masks"+x[10:] for x in images]
 masks = [x[:-4]+'_mask.gif' for x in masks] 
 

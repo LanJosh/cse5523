@@ -32,6 +32,7 @@ Usage:
 @@alexnet_v2
 """
 
+import tensorflow as tf
 from tensorflow.contrib import layers
 from tensorflow.contrib.framework.python.ops import arg_scope
 from tensorflow.contrib.layers.python.layers import layers as layers_lib
@@ -103,13 +104,15 @@ def alexnet_v2(inputs,
         net,
         2, [1,1], # Prediction is either 'car' or 'background' for Carvana.
         padding='VALID',
+        activation_fn=tf.nn.sigmoid,
         biases_initializer=init_ops.zeros_initializer(),
         scope='fc8') 
 
   # Deconvolution net
   with arg_scope(
       [layers.conv2d_transpose],
-      padding='VALID'):
+      padding='VALID',
+      activation_fn=nn_ops.relu):
     net = layers.conv2d_transpose(net, 4096, 1, scope='convt9')
     net = layers.conv2d_transpose(net, 4096, 1, scope='convt10')
     net = layers.conv2d_transpose(net, 256, 5, scope='convt11')
@@ -119,9 +122,7 @@ def alexnet_v2(inputs,
     net = layers.conv2d_transpose(net, 192, 3, 2, scope='convt15')
     net = layers.conv2d_transpose(net, 192, 5, scope='convt16')
     net = layers.conv2d_transpose(net, 96, 3, 2, scope='convt17')
-    # Since we only classify between car & background we can hold
-    # the scores for only 1.
-    net = layers.conv2d_transpose(net, 2, 11, 4, scope='convt18')
+    net = layers.conv2d_transpose(net, 2, 11, 4, activation_fn=tf.nn.sigmoid, scope='convt18')
 
   return net
 
@@ -149,12 +150,13 @@ def alexnet_v2_orig(inputs,
 
   net = layers.conv2d(
       inputs, 96, [11, 11], 4, padding='VALID', scope='conv1')
-  net = layers.conv2d(net, 192, 3, 2, padding='VALID', scope='pconv1')
+  net = layers.max_pool2d(net, [3,3], 2, scope='pool1')
   net = layers.conv2d(net, 192, [5, 5], padding='VALID', scope='conv2')
-  net = layers.conv2d(net, 384, 3, 2, padding='VALID', scope='pconv2')
+  net = layers.max_pool2d(net, [3,3], 2, scope='pool2')
   net = layers.conv2d(net, 384, [3, 3], padding='VALID', scope='conv3')
   net = layers.conv2d(net, 384, [3, 3], padding='VALID', scope='conv4')
   net = layers.conv2d(net, 256, [3, 3], padding='VALID', scope='conv5')
+  net = layers.max_pool2d(net, [3,3], 2, scope='pool3')
 
   # Convolution net
   with arg_scope(
@@ -162,7 +164,7 @@ def alexnet_v2_orig(inputs,
       weights_initializer=trunc_normal(0.005),
       biases_initializer=init_ops.constant_initializer(0.1)):
 
-    net = layers.conv2d(net, 4096, [5, 5], padding='VALID', scope='fc6')
+    net = layers.conv2d(net, 4096, [2, 2], padding='VALID', scope='fc6')
     net = layers_lib.dropout(
         net, dropout_keep_prob, is_training=is_training, scope='dropout6')
     net = layers.conv2d(net, 4096, [1, 1], scope='fc7')
@@ -171,6 +173,7 @@ def alexnet_v2_orig(inputs,
     net = layers.conv2d(
         net,
         2, [1,1], # Prediction is either 'car' or 'background' for Carvana.
+        activation_fn=tf.nn.sigmoid,
         padding='VALID',
         biases_initializer=init_ops.zeros_initializer(),
         scope='fc8') 
@@ -179,7 +182,7 @@ def alexnet_v2_orig(inputs,
   with arg_scope(
       [layers.conv2d_transpose],
       padding='VALID'):
-    net = layers.conv2d_transpose(net, 2, 227, 32, scope='deconv')
+    net = layers.conv2d_transpose(net, 2, 227, 32, activation_fn=tf.nn.sigmoid, scope='deconv')
 
   return net
 
